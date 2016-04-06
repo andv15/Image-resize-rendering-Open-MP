@@ -1,0 +1,156 @@
+
+	SONEA Andreea 333CB
+	Octombrie 2015
+			>>>>>>>>>>>>>>>TEMA 1 Algoritmi Paraleli si Distribuiti<<<<<<<<<<<<<<<<
+
+
+
+DESCRIEREA SOLUTIEI
+
+	TASK 1:
+		Pentru fiecare imagine am memorat:		
+	- tip
+	- inaltime, latime
+	- valoare maxima
+	- 3 x matrice alocata dinamic hxw de tipul unsigned char, ce memoreaza pe fiecare pozitie valoarea unei 
+culori dintr-un pixel. Sunt folosite 3 astfel de matrici pentru ca in cazul imaginilor color avem 3 culori 
+pe pixel(RGB).
+
+	Pentru 1 pixel color se citesc 3 valori: rosu, verde, albastru.
+	Pentru 1 pixel alb - negru se citeste o singura valoare.
+
+	Citirea datelor:
+	- citire antet: tipul imaginii, cele doua dimensiuni si valoarea maxima
+	- citire intr-un buffer alocat dinamic valorile fiecarui pixel
+	- alocare matrici RGB
+	- parcurgere fiecare element din buffer si punerea lui pe pozitia corespunzatoare in matrici
+	- dezalocare memorie buffer
+
+	Resize:
+	- creare antetul pentru noua imagine
+	- alocare memorie pentru noua imagine
+	- in cazul unui resize_factor par este parcursa imaginea noua pixel cu pixel si este calculata media 
+aritmetica a valorilor pixelilor vecini din imaginea initiala care corespund noului pixel. Spre exemplu,
+in cazul resize factor = 2 se restrang matrici de 2x2 pixeli in unul singur.
+	- in cazul unui resize_factor 3 este parcursa imaginea noua pixel cu pixel si este calculata suma 
+pixel-ilor vechi (din matrici de 3x3) inmultiti cu valorile corespunzatoare din matricea Gaussiana.
+	- dezalocare memorie imagine initiala
+
+	Afisarea datelor:
+	- alocare memorie buffer
+	- punere in buffer a valorii/valorilor din fiecare pixel
+	- afisare antet si buffer in fisier-ul de iesiere
+	- dezalocare memorie imagine noua si buffer
+
+	Pentru obtinerea scalabilitatii am paralelizat prima instructiune repetitiva "for" din parcurgerea
+matricei de pixeli a noii imagini, astfel incat fiecare thread se va ocupa de cel putin o linie de pixeli
+din noua matrice.
+
+
+
+	TASK 2:
+		Pentru fiecare imagine am memorat:		
+	- tip
+	- inaltime, latime
+	- valoare maxima
+	- 1 x matrice alocata dinamic hxw de tipul unsigned char, ce memoreaza pe fiecare pozitie valoarea unui 
+pixel.
+	Pentru 1 pixel alb - negru se citeste o singura valoare.
+
+	Citirea datelor:
+	- citire antet: tipul imaginii, cele doua dimensiuni si valoarea maxima
+	- citire intr-un buffer alocat dinamic valoarea fiecarui pixel
+	- alocare matrice pentru pixeli
+	- parcurgere fiecare element din buffer si punerea lui pe pozitia corespunzatoare in matrice
+	- dezalocare memorie buffer
+
+	Render:
+	- calculare "dimensiune pixel" in functie de rezolutia data. Exemplu: in cazul 1000x1000 "1 pixel"
+va fi reprezentat prin matrice de 10x10 pixeli.
+	- parcurgere fiecare pixel(in cazul 100x100), calculare distanta de la el la dreapta si colorare
+in functie de distanta a "noului pixel (toti pixeli din matricea de dimensiune latime/rezolutie x inaltime/rezolutie
+corespunzatori pixelului din 100x100).
+
+	Afisarea datelor:
+	- alocare memorie buffer
+	- punere in buffer a valorii din fiecare pixel
+	- afisare antet si buffer in fisier-ul de iesiere
+	- dezalocare memorie imagine si buffer
+
+	Pentru obtinerea scalabilitatii am paralelizat prima instructiune repetitiva "for" din parcurgerea
+spatiului de 100x100 metrii, astfel incat fiecare thread se va ocupa de cel putin o linie de pixeli din
+acest spatiu.
+
+
+
+SCALABILITATE
+
+	Masurarea timpilor necesari rularii programului pe numar diferit de thread-uri am facut-o pe coada 
+ibm-nehalem.q a clusterului din facultate, asa cum se preciza in enunt. Am incarcat fisierele sursa, 
+header-ele, script-ul si imaginile in radacina contului de pe fep.grid.pub.ro, am compilat si am rulat 
+script-ul care apela executabilul cu diversi parametrii(se schimbau doar numarul de thread-uri (1,2,4,8)
+si imaginea color / alb-negru).
+	Conform urmatoarelor masuratori poate fi observata scalabilitatea programului, timpul de executie, 
+cu aproximatie, se injumatateste (~1.85) la fiecare dublare a numarului de thread-uri.
+
+----------Task 1----------
+Color: img1.pnm 3648x2736 29.9MB
+1 2 4 8 threads
+
+resize factor = 2
+0.157143
+0.084101
+0.046021
+0.024056
+
+color: resize_factor = 3
+0.250180
+0.129041
+0.065690
+0.035028
+
+color: resize_factor = 8
+0.100469
+0.053594
+0.029597
+0.017762
+
+Black-white: img1.pnm 3648x2736 10.0MB
+1 2 4 8 threads
+
+resize factor = 2
+0.085682
+0.047501
+0.026193
+0.015292
+
+resize_factor = 3
+0.105097
+0.055382
+0.029620
+0.016179
+
+resize_factor = 8
+0.049632
+0.026813
+0.017100
+0.009091
+
+
+----------Task 2----------
+render 7000 x 7000
+1 2 4 8 threads
+0.345648
+0.180178
+0.105005
+0.068298
+
+render 10000 x 10000
+1 2 4 8 threads
+0.652339
+0.360728
+0.216637
+0.135304
+
+
+
